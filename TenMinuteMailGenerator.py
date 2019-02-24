@@ -10,7 +10,7 @@ class TenMinuteMailGenerator(object):
     """generates 10 minute mails from 10minutemail.com"""
 
     def __init__(self):
-        self.SIDCookie = "";
+        self.SIDCookie = ""
 
     def get10MinuteMail(self, simulate = False):
         """gets the email adress of 10 minute mail
@@ -46,7 +46,11 @@ class TenMinuteMailGenerator(object):
             currentMessageCount: The current count of messages the new count of messages shall be compared with
 
             *Returns*: new message count as int"""
-        while True:
+
+        totalPointCount = 3
+        pointCount = 1
+
+        while (True):
             req = urllib.request.Request(
                 "https://10minutemail.com/10MinuteMail/resources/messages/messageCount", 
                 data=None, 
@@ -58,17 +62,24 @@ class TenMinuteMailGenerator(object):
             req.add_header("cookie", self.SIDCookie)
 
             with urllib.request.urlopen(req) as response:
-                messageCount = response.read().decode('utf-8');
+                messageCount = response.read().decode('utf-8')
 
             if int(messageCount) > currentMessageCount:
                 print("You got new mail! " + messageCount)
                 break;
             else:
-                print("Waiting for new mails.. currently " + messageCount + " messages")
+                print("Waiting for new mails.. currently " + messageCount + " messages" + ('.' * pointCount) + (" " * (totalPointCount - pointCount))+ "\r", end="", flush=True)
 
-            time.sleep(5);
+            # the page works with a 10-second-interval, so adjust that if necessary
+            time.sleep(5)
 
-        return int(messageCount);
+            # reset point count so we can get a smooth "animation"
+            if pointCount >= totalPointCount:
+                pointCount = 1
+            else:
+                pointCount += 1
+
+        return int(messageCount)
 
     def getMessage(self, messageID):
         """get message with given ID and return a json object with mail parameters 
@@ -89,14 +100,14 @@ class TenMinuteMailGenerator(object):
         req.add_header("cookie", self.SIDCookie)
 
         with urllib.request.urlopen(req) as response:
-            message = response.read().decode('utf-8');
+            message = response.read().decode('utf-8')
 
         # example:
         # [{"id":"-2768562531071984888","subject":"Fw: Test-Mail","attachments":[],"forwarded":false,"fromList":["test@xyz.de"],"formattedDate":"Oct 23, 2017 9:15:56 AM","bodyPreview":"","attachmentCount":0,"recipientList":["r525128@mvrht.net"],"read":false,"repliedTo":false,"expanded":false,"bodyPlainText":null,"bodyText":"<html><head></head><body><div style=\"font-family: Verdana;font-size: 12.0px;\"><div>&nbsp;\r\n<div>&nbsp;\r\n<div name=\"quote\" style=\"margin:10px 5px 5px 10px; padding: 10px 0 10px 10px; border-left:2px solid #C3D9E5; word-wrap: break-word; -webkit-nbsp-mode: space; -webkit-line-break: after-white-space;\">\r\n<div style=\"margin:0 0 10px 0;\"><b>Gesendet:</b>&nbsp;Montag, 23. Oktober 2017 um 12:52 Uhr<br/>\r\n<b>Von:</b>&nbsp;&quot;Max Mustermann&quot; &lt;text@xyz.de&gt;<br/>\r\n<b>An:</b>&nbsp;r505895@mvrht.net<br/>\r\n<b>Betreff:</b>&nbsp;Fw: Test-Mail</div>\r\n\r\n<div name=\"quoted-content\">\r\n<div style=\"font-family: Verdana;font-size: 12.0px;\">\r\n<div>&nbsp;\r\n<div>&nbsp;\r\n<div style=\"margin: 10.0px 5.0px 5.0px 10.0px;padding: 10.0px 0 10.0px 10.0px;border-left: 2.0px solid rgb(195,217,229);\">\r\n<div style=\"margin: 0 0 10.0px 0;\"><b>Gesendet:</b>&nbsp;Montag, 23. Oktober 2017 um 12:50 Uhr<br/>\r\n<b>Von:</b>&nbsp;&quot;Max Mustermann&quot; &lt;test@xyz.de&gt;<br/>\r\n<b>An:</b>&nbsp;r506390@mvrht.net<br/>\r\n<b>Betreff:</b>&nbsp;Test-Mail</div>\r\n\r\n<div>\r\n<div style=\"font-family: Verdana;font-size: 12.0px;\">\r\n<div>Kleiner Test ob das auch funktioniert</div>\r\n</div>\r\n</div>\r\n</div>\r\n</div>\r\n</div>\r\n</div>\r\n</div>\r\n</div>\r\n</div>\r\n</div></div></body></html>\r\n","sentDate":1508768156000,"primaryFromAddress":"test@xyz.de"}]
         return json.loads(message);
 
     def showMessage(self, json):
-        return "Sender: " + json[0]['primaryFromAddress'] + "\nSubject:" + json[0]['subject'] + "\nMessage:" + json[0]['bodyText'] + "\n"
+        return "Sender: " + json[0]['primaryFromAddress'] + "\nSubject: " + json[0]['subject'] + "\nMessage: " + json[0]['bodyText'] + "\n"
 
 if __name__ == '__main__':
     
@@ -106,10 +117,10 @@ if __name__ == '__main__':
     print ("Generating mail..")
     print(Tenmmg.get10MinuteMail())
     
-    i = -1;
+    i = -1
     while True:
         option = input("Waiting for new message? [Y]es (json raw output), [N]o (Ends script), Yes but show me extracted sender, subject and [B]ody\n")
-        i += 1;
+        i += 1
 
         if option.lower().startswith("y"):
            print (Tenmmg.getMessage(Tenmmg.anyNewMessage(i) - 1)) 
