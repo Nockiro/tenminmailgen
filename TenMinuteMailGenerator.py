@@ -83,6 +83,7 @@ class TenMinuteMailGenerator(object):
             if totalWaitTime > 500:
                 print("> 500 seconds over.. requesting extension.")
                 self.renewInterval()
+                totalWaitTime = 0
 
             # reset point count so we can get a smooth "animation"
             if pointCount >= totalPointCount:
