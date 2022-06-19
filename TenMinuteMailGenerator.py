@@ -106,13 +106,18 @@ class TenMinuteMailGenerator(object):
         return json.loads(message)
 
     def showMessage(self, json):
+        mailText = json[0]["bodyPlainText"]
+
+        if mailText == None:
+            mailText = json[0]["bodyHtmlContent"]
+
         return (
             "Sender: "
             + json[0]["sender"]
             + "\nSubject: "
             + json[0]["subject"]
             + "\nMessage: "
-            + json[0]["bodyPlainText"]
+            + mailText
             + "\n"
         )
 
@@ -146,7 +151,7 @@ class TenMinuteMailGenerator(object):
 
 if __name__ == "__main__":
 
-    awaitContinueRequest("generate a mail adress")
+    awaitContinueRequest("generate a mail address")
     Tenmmg = TenMinuteMailGenerator()
 
     print("> Generating mail.. ")
@@ -154,9 +159,14 @@ if __name__ == "__main__":
 
     messageId = 0
     while True:
-        option = input(
-            "> Waiting for new message? [Y]es (json raw output), [N]o (Ends script), Yes but show me extracted sender, subject and text [B]ody\n"
+        print(
+            "\n"
+            + "> Do you want to watch for new messages? Your choices: \n"
+            + "> [Y]es (json raw output) \n"
+            + "> [N]o (Ends script) \n"
+            + "> Yes but show me extracted sender, subject and [B]ody (plaintext version if available, otherwise html) \n",
         )
+        option = input("> Your choice [Y, N, B]: ")
 
         if option.lower().startswith("y"):
             print(Tenmmg.getMessage(Tenmmg.anyNewMessage(messageId) - 1))
